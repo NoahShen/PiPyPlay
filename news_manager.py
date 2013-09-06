@@ -10,6 +10,7 @@ logging.basicConfig(format='[%(asctime)s][%(levelname)s]:%(message)s',
 
 
 from models.models import TopNewsWord
+from models.models import db
 from news import get_top_news
 from datetime import date
 
@@ -25,12 +26,13 @@ def get_changed_words(query_date=date.today(), news_type = 0):
     for old_words in old_news_words_cursor:
         old_news_words.append(old_words.query_word)
 
-    for new_news_word in top_news_words:
-        word = new_news_word['query_word']
-        if word in old_news_words:
-            continue
-        newWord = TopNewsWord(name=new_news_word['title'], query_word=word,type=news_type)
-        newWord.save()
+    with db.transaction():
+        for new_news_word in top_news_words:
+            word = new_news_word['query_word']
+            if word in old_news_words:
+                continue
+            newWord = TopNewsWord(name=new_news_word['title'], query_word=word,type=news_type)
+            newWord.save()
 
 
 if __name__ == '__main__':
